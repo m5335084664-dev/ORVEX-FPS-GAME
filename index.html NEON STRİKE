@@ -300,3 +300,86 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 <button id="onlineBtn">ONLINE</button>
+
+<div id="mainMenu" class="neon-menu">
+  <h1>NEON STRIKE</h1>
+  <h2>ARENA</h2>
+
+  <button onclick="openOnline()">ÇEVRİM İÇİ</button>
+  <button onclick="openOffline()">ÇEVRİM DIŞI</button>
+
+  <p>FUTURE COMBAT • ENTER THE ARENA</p>
+</div>
+
+<div id="gameOptions" class="neon-menu" style="display:none">
+  <h2 id="menuTitle">OYUN MODU</h2>
+  <button onclick="backToMenu()">GERİ</button>
+</div>
+
+<style>
+.neon-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: radial-gradient(circle, #172b48, #050812 75%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.neon-menu h1 {
+  color: #35eaff;
+  font-size: 48px;
+  text-shadow: 0 0 20px #00cfff;
+  margin: 0;
+}
+
+.neon-menu h2 {
+  font-size: 28px;
+  letter-spacing: 8px;
+}
+
+.neon-menu button {
+  width: 260px;
+  padding: 18px;
+  background: #102b43;
+  color: #48edff;
+  border: 2px solid #35eaff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.neon-menu button:hover {
+  background: #087c9b;
+  box-shadow: 0 0 25px #00dfff;
+  transform: scale(1.05);
+}
+</style>
+
+<script>
+function openOnline() {
+  document.getElementById("mainMenu").style.display = "none";
+  document.getElementById("gameOptions").style.display = "flex";
+  document.getElementById("menuTitle").textContent =
+    "ÇEVRİM İÇİ - YAKINDA";
+}
+
+function openOffline() {
+  document.getElementById("mainMenu").style.display = "none";
+  document.getElementById("gameOptions").style.display = "flex";
+  document.getElementById("menuTitle").textContent =
+    "BOT MODU - OYUN BAĞLANTISI GEREKLİ";
+}
+
+function backToMenu() {
+  document.getElementById("gameOptions").style.display = "none";
+  document.getElementById("mainMenu").style.display = "flex";
+}
+</script>
