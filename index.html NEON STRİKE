@@ -277,7 +277,7 @@ function updateCrouch() {
 }
 </script>
 
-BURAYA VERDİĞİM KODU YAPIŞTIR
+
 
 </body>
 </html>
@@ -299,3 +299,4 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+<button id="onlineBtn">ONLINE</button>
