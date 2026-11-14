@@ -275,3 +275,27 @@ function updateCrouch() {
     const targetY = isCrouching ? 1.1 : 1.7;
     camera.position.y += (targetY - camera.position.y) * 0.2;
 }
+</script>
+
+BURAYA VERDİĞİM KODU YAPIŞTIR
+
+</body>
+</html>
+
+document.addEventListener("DOMContentLoaded", () => {
+    const buttons = document.querySelectorAll("button");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            const name = button.textContent.trim().toLowerCase();
+
+            if (name.includes("çevrim içi") || name.includes("online")) {
+                alert("ÇEVRİM İÇİ MENÜSÜ AÇILIYOR!");
+            }
+
+            if (name.includes("çevrim dışı") || name.includes("offline")) {
+                alert("BOTLARLA OYUN AÇILIYOR!");
+            }
+        });
+    });
+});
