@@ -383,3 +383,4 @@ function backToMenu() {
   document.getElementById("mainMenu").style.display = "flex";
 }
 </script>
+</html>
