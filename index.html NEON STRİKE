@@ -1,0 +1,277 @@
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEON STRIKE ARENA</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07101e;color:white;font-family:Arial;overflow:hidden}
+button,input{font:inherit}
+button{background:#13cde0;color:#03121b;border:0;padding:14px 25px;border-radius:7px;font-weight:bold;cursor:pointer}
+button:hover{filter:brightness(1.2)}
+#menu{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#15334b,#050914 75%)}
+.panel{width:min(550px,94%);padding:30px;text-align:center;background:#081727ed;border:1px solid #16d9ed;border-radius:15px;box-shadow:0 0 35px #00cce455}
+h1{font-size:clamp(35px,7vw,65px);color:#29e8f4;letter-spacing:5px;text-shadow:0 0 20px #00ddeb;margin:5px}
+.sub{color:#9bbaca;letter-spacing:4px;margin-bottom:30px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choices button{min-height:75px;font-size:18px}
+.secondary{background:#172c40;color:white;border:1px solid #32748a}
+#online,#team{display:none}
+input{width:100%;padding:14px;background:#07101e;border:1px solid #20cde0;color:white;border-radius:7px;margin:10px 0}
+.back{margin-top:15px;background:#26384c;color:white}
+#game{position:fixed;inset:0;width:100%;height:100%;display:none}
+#hud{display:none;position:fixed;inset:0;pointer-events:none}
+#cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:25px;color:#4cf5ff}
+#stats{position:absolute;bottom:20px;left:20px;background:#071323cc;padding:14px;border:1px solid #1bd9e5;border-radius:8px}
+#tip{position:absolute;right:15px;bottom:15px;background:#071323cc;padding:12px}
+#exit{position:absolute;right:15px;top:15px;pointer-events:auto}
+#onlineCount{color:#55f5a7;margin:18px}
+</style>
+</head>
+<body>
+<div id="menu">
+ <div class="panel" id="main">
+  <h1>NEON STRIKE</h1>
+  <div class="sub">ARENA</div>
+  <p>GELECEĞİN SAVAŞ ALANINA HOŞ GELDİN</p>
+  <div id="onlineCount">● ÇEVRİM İÇİ MOD HAZIRLIĞI</div>
+  <div class="choices">
+   <button onclick="show('online')">ÇEVRİM İÇİ</button>
+   <button class="secondary" onclick="startGame()">ÇEVRİM DIŞI</button>
+  </div>
+  <p style="color:#819db1">Çevrim dışı: Botlara karşı antrenman</p>
+ </div>
+ <div class="panel" id="online">
+  <h1 style="font-size:35px">ÇEVRİM İÇİ</h1>
+  <p>Nasıl oynamak istersin?</p>
+  <button style="width:100%" onclick="show('team')">TAKIM KODUYLA OYNA</button>
+  <button style="width:100%;margin-top:12px" onclick="findServer()">SUNUCUYA KATIL</button>
+  <p id="serverMessage"></p>
+  <button class="back" onclick="show('main')">GERİ</button>
+ </div>
+ <div class="panel" id="team">
+  <h1 style="font-size:32px">TAKIM SİSTEMİ</h1>
+  <input id="teamCode" placeholder="Takım kodunu gir">
+  <button onclick="joinTeam()">TAKIMA KATIL</button>
+  <button class="back" onclick="show('online')">GERİ</button>
+  <p id="teamMessage"></p>
+ </div>
+</div>
+<canvas id="game"></canvas>
+<div id="hud">
+ <div id="cross">+</div>
+ <div id="stats">SKOR: <span id="score">0</span><br>
+ SİLAH: <span id="weapon">NEON CARBINE</span><br>
+ ŞARJÖR: <span id="ammo">30</span></div>
+ <div id="tip">WASD: Hareket | Fare: Bakış<br>Sol tık: Ateş | 1/2/3: Silah | R: Şarjör</div>
+ <button id="exit" onclick="exitGame()">MENÜ</button>
+</div>
+<script>
+function show(id){
+ ['main','online','team'].forEach(x=>document.getElementById(x).style.display='none');
+ document.getElementById(id).style.display='block';
+}
+function findServer(){
+ document.getElementById('serverMessage').textContent=
+ 'Çok oyunculu sunucu henüz kurulmadı. Yakında!';
+}
+function joinTeam(){
+ document.getElementById('teamMessage').textContent=
+ document.getElementById('teamCode').value.trim()
+ ? 'Takım sunucusu henüz etkin değil.'
+ : 'Önce takım kodu gir!';
+}
+
+let scene,camera,renderer,player,targets=[],running=false,score=0;
+let yaw=0,pitch=0,keys={},weapon=0,ammo=[30,12,5],reloading=false,lastShot=0;
+const weaponNames=['NEON CARBINE','PULSE PISTOL','VOLT SNIPER'];
+const ray=new THREE.Raycaster();
+const clock=new THREE.Clock();
+
+function material(c,e=0){return new THREE.MeshStandardMaterial({color:c,emissive:e});}
+function block(x,y,z,w,h,d,c,e=0){
+ let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(c,e));
+ m.position.set(x,y,z);scene.add(m);return m;
+}
+function buildArena(){
+ scene.background=new THREE.Color(0x091321);
+ scene.fog=new THREE.Fog(0x091321,25,75);
+ scene.add(new THREE.HemisphereLight(0x9adfff,0x172033,2));
+ let light=new THREE.DirectionalLight(0xffffff,2);
+ light.position.set(-8,15,8);scene.add(light);
+ let floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),material(0x172536));
+ floor.rotation.x=-Math.PI/2;scene.add(floor);
+ let grid=new THREE.GridHelper(100,50,0x1d9eae,0x254052);
+ grid.position.y=.01;scene.add(grid);
+ // Arena boundaries
+ block(0,4,-25,52,8,1,0x15283a);
+ block(-26,4,0,1,8,52,0x15283a);
+ block(26,4,0,1,8,52,0x15283a);
+ block(0,4,26,52,8,1,0x15283a);
+ // Cover and narrow routes
+ for(let i=-2;i<=2;i++){
+  block(i*9,1.3,-7,3,2.6,2,0x28465a);
+  block(i*9,1.3,-17,3,2.6,2,0x28465a);
+ }
+ // Neon buildings
+ for(let i=0;i<12;i++){
+  let x=(Math.random()-.5)*42;
+  let z=-22-Math.random()*9;
+  block(x,3,z,3,6+Math.random()*7,3,0x203449);
+ }
+ for(let z=-20;z<=20;z+=10){
+  block(-25,4,z,.12,7,.12,0x00bcd4,0x00bcd4);
+  block(25,4,z,.12,7,.12,0xff267f,0xff267f);
+ }
+}
+function spawnTarget(){
+ let g=new THREE.Group();
+ let body=new THREE.Mesh(new THREE.CylinderGeometry(.48,.58,1.25,12),material(0xff526d,0x4b0718));
+ body.position.y=.75;g.add(body);
+ let head=new THREE.Mesh(new THREE.SphereGeometry(.38,16,12),material(0xffc5d0));
+ head.position.y=1.65;g.add(head);
+ let ring=new THREE.Mesh(new THREE.TorusGeometry(.68,.045,8,24),material(0x36eaff,0x0aaacb));
+ ring.position.y=.78;g.add(ring);
+ g.position.set((Math.random()-.5)*38,0,-5-Math.random()*18);
+ g.userData.health=100;
+ g.userData.parts=[body,head,ring];
+ scene.add(g);targets.push(g);
+}
+function startGame(){
+ document.getElementById('menu').style.display='none';
+ document.getElementById('game').style.display='block';
+ document.getElementById('hud').style.display='block';
+ if(!renderer){
+  const canvas=document.getElementById('game');
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(76,innerWidth/innerHeight,.1,120);
+  player=new THREE.Group();scene.add(player);player.add(camera);
+  camera.position.set(0,1.7,0);
+  buildArena();
+  for(let i=0;i<10;i++)spawnTarget();
+  window.addEventListener('resize',resize);
+ }
+ running=true;
+ renderer.setSize(innerWidth,innerHeight);
+ clock.getDelta();
+ canvasLock();
+ animate();
+}
+function canvasLock(){
+ document.getElementById('game').requestPointerLock?.();
+}
+document.addEventListener('pointerlockchange',()=>{
+ if(document.pointerLockElement!==document.getElementById('game')&&running){
+  document.getElementById('menu').style.display='flex';
+  show('main');
+  running=false;
+ }
+});
+function exitGame(){
+ document.exitPointerLock?.();
+ running=false;
+ document.getElementById('menu').style.display='flex';
+ show('main');
+ document.getElementById('hud').style.display='none';
+ document.getElementById('game').style.display='none';
+}
+document.addEventListener('keydown',e=>{
+ keys[e.code]=true;
+ if(e.code==='Digit1')switchWeapon(0);
+ if(e.code==='Digit2')switchWeapon(1);
+ if(e.code==='Digit3')switchWeapon(2);
+ if(e.code==='KeyR')reload();
+});
+document.addEventListener('keyup',e=>keys[e.code]=false);
+document.addEventListener('mousemove',e=>{
+ if(!running||document.pointerLockElement!==document.getElementById('game'))return;
+ yaw-=e.movementX*.0022;
+ pitch-=e.movementY*.0022;
+ pitch=Math.max(-1.4,Math.min(1.4,pitch));
+ player.rotation.y=yaw;
+ camera.rotation.x=pitch;
+});
+function switchWeapon(i){
+ weapon=i;
+ document.getElementById('weapon').textContent=weaponNames[i];
+ updateAmmo();
+}
+function updateAmmo(){
+ document.getElementById('ammo').textContent=ammo[weapon];
+}
+function reload(){
+ if(reloading||ammo[weapon]===[30,12,5][weapon])return;
+ reloading=true;
+ setTimeout(()=>{
+  ammo[weapon]=[30,12,5][weapon];
+  reloading=false;updateAmmo();
+ },1200);
+}
+document.addEventListener('mousedown',e=>{
+ if(e.button!==0||!running||reloading)return;
+ if(document.pointerLockElement!==document.getElementById('game'))return;
+ let now=performance.now();
+ if(now-lastShot<([115,260,750][weapon]))return;
+ lastShot=now;
+ if(ammo[weapon]<=0){reload();return;}
+ ammo[weapon]--;updateAmmo();
+ ray.setFromCamera(new THREE.Vector2(0,0),camera);
+ let parts=targets.flatMap(t=>t.userData.parts);
+ let hit=ray.intersectObjects(parts,false);
+ if(hit.length){
+  let t=targets.find(x=>x.userData.parts.includes(hit[0].object));
+  if(t){
+   t.userData.health-=[34,50,100][weapon];
+   if(t.userData.health<=0){
+    scene.remove(t);targets.splice(targets.indexOf(t),1);
+    score++;
+    document.getElementById('score').textContent=score;
+    spawnTarget();
+   }
+  }
+ }
+});
+function resize(){
+ if(!renderer)return;
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+}
+function animate(){
+ if(!running)return;
+ requestAnimationFrame(animate);
+ let dt=Math.min(clock.getDelta(),.04);
+ if(document.pointerLockElement===document.getElementById('game')){
+  let speed=8*dt;
+  if(keys.KeyW)player.translateZ(-speed);
+  if(keys.KeyS)player.translateZ(speed);
+  if(keys.KeyA)player.translateX(-speed);
+  if(keys.KeyD)player.translateX(speed);
+  player.position.x=Math.max(-23,Math.min(23,player.position.x));
+  player.position.z=Math.max(-23,Math.min(23,player.position.z));
+  targets.forEach((t,i)=>{
+   t.position.y=.04*Math.sin(performance.now()*.0015+i);
+  });
+ }
+ renderer.render(scene,camera);
+}
+</script>
+</body>
+</html>
+let isCrouching = false;
+
+document.addEventListener("keydown", (e) => {
+    if (e.code === "KeyC") isCrouching = true;
+});
+
+document.addEventListener("keyup", (e) => {
+    if (e.code === "KeyC") isCrouching = false;
+});
+
+function updateCrouch() {
+    const targetY = isCrouching ? 1.1 : 1.7;
+    camera.position.y += (targetY - camera.position.y) * 0.2;
+}
