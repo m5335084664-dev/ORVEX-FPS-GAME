@@ -1,386 +1,431 @@
+
+<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NEON STRIKE ARENA</title>
-<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ORVEX FPS</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07101e;color:white;font-family:Arial;overflow:hidden}
-button,input{font:inherit}
-button{background:#13cde0;color:#03121b;border:0;padding:14px 25px;border-radius:7px;font-weight:bold;cursor:pointer}
-button:hover{filter:brightness(1.2)}
-#menu{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#15334b,#050914 75%)}
-.panel{width:min(550px,94%);padding:30px;text-align:center;background:#081727ed;border:1px solid #16d9ed;border-radius:15px;box-shadow:0 0 35px #00cce455}
-h1{font-size:clamp(35px,7vw,65px);color:#29e8f4;letter-spacing:5px;text-shadow:0 0 20px #00ddeb;margin:5px}
-.sub{color:#9bbaca;letter-spacing:4px;margin-bottom:30px}
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.choices button{min-height:75px;font-size:18px}
-.secondary{background:#172c40;color:white;border:1px solid #32748a}
-#online,#team{display:none}
-input{width:100%;padding:14px;background:#07101e;border:1px solid #20cde0;color:white;border-radius:7px;margin:10px 0}
-.back{margin-top:15px;background:#26384c;color:white}
-#game{position:fixed;inset:0;width:100%;height:100%;display:none}
+body{margin:0;overflow:hidden;background:#080d16;font-family:Arial,sans-serif;color:white}
+canvas{display:block}
+#menu{
+position:fixed;inset:0;z-index:5;
+display:flex;align-items:center;justify-content:center;
+flex-direction:column;
+background:linear-gradient(120deg,#07111fee,#102b40dd);
+}
+#menu h1{font-size:76px;letter-spacing:15px;margin:0;color:#54eaff;text-shadow:0 0 30px #00bfff}
+#menu p{color:#b6d7e8;letter-spacing:4px}
+#start{padding:17px 55px;border:1px solid #42eaff;background:#087c9b;color:white;font-size:18px;cursor:pointer;letter-spacing:3px;margin-top:25px}
+#start:hover{background:#10b6d4}
 #hud{display:none;position:fixed;inset:0;pointer-events:none}
-#cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:25px;color:#4cf5ff}
-#stats{position:absolute;bottom:20px;left:20px;background:#071323cc;padding:14px;border:1px solid #1bd9e5;border-radius:8px}
-#tip{position:absolute;right:15px;bottom:15px;background:#071323cc;padding:12px}
-#exit{position:absolute;right:15px;top:15px;pointer-events:auto}
-#onlineCount{color:#55f5a7;margin:18px}
+#top{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:#07121dcc;padding:12px 30px;border:1px solid #35cde5;letter-spacing:5px}
+#health{position:absolute;bottom:35px;left:35px;background:#081522dd;padding:16px 22px;border-left:4px solid #40d9f2}
+#healthbar{width:180px;height:8px;background:#263746;margin-top:8px}
+#healthfill{height:100%;width:100%;background:#35e6c0}
+#ammo{position:absolute;right:35px;bottom:35px;font-size:30px;background:#081522dd;padding:15px 25px}
+#crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:25px;color:#fff;text-shadow:0 0 5px #00eaff}
+#hint{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:12px;color:#b5dce5;white-space:nowrap}
+#message{position:absolute;top:30%;left:50%;transform:translateX(-50%);font-size:28px;color:#5beaff}
+#mapname{position:absolute;top:20px;left:20px;color:#7deaff;letter-spacing:3px}
 </style>
 </head>
 <body>
+
 <div id="menu">
- <div class="panel" id="main">
-  <h1>NEON STRIKE</h1>
-  <div class="sub">ARENA</div>
-  <p>GELECEĞİN SAVAŞ ALANINA HOŞ GELDİN</p>
-  <div id="onlineCount">● ÇEVRİM İÇİ MOD HAZIRLIĞI</div>
-  <div class="choices">
-   <button onclick="show('online')">ÇEVRİM İÇİ</button>
-   <button class="secondary" onclick="startGame()">ÇEVRİM DIŞI</button>
-  </div>
-  <p style="color:#819db1">Çevrim dışı: Botlara karşı antrenman</p>
- </div>
- <div class="panel" id="online">
-  <h1 style="font-size:35px">ÇEVRİM İÇİ</h1>
-  <p>Nasıl oynamak istersin?</p>
-  <button style="width:100%" onclick="show('team')">TAKIM KODUYLA OYNA</button>
-  <button style="width:100%;margin-top:12px" onclick="findServer()">SUNUCUYA KATIL</button>
-  <p id="serverMessage"></p>
-  <button class="back" onclick="show('main')">GERİ</button>
- </div>
- <div class="panel" id="team">
-  <h1 style="font-size:32px">TAKIM SİSTEMİ</h1>
-  <input id="teamCode" placeholder="Takım kodunu gir">
-  <button onclick="joinTeam()">TAKIMA KATIL</button>
-  <button class="back" onclick="show('online')">GERİ</button>
-  <p id="teamMessage"></p>
- </div>
+<h1>ORVEX</h1>
+<p>TACTICAL COMBAT SYSTEM</p>
+<button id="start">OYUNA BAŞLA</button>
+<p>3D PROTOTYPE • NEON CITY</p>
 </div>
-<canvas id="game"></canvas>
+
 <div id="hud">
- <div id="cross">+</div>
- <div id="stats">SKOR: <span id="score">0</span><br>
- SİLAH: <span id="weapon">NEON CARBINE</span><br>
- ŞARJÖR: <span id="ammo">30</span></div>
- <div id="tip">WASD: Hareket | Fare: Bakış<br>Sol tık: Ateş | 1/2/3: Silah | R: Şarjör</div>
- <button id="exit" onclick="exitGame()">MENÜ</button>
+<div id="top">ORVEX // NEON CITY</div>
+<div id="mapname">MAP 01 : NEON CITY</div>
+<div id="crosshair">+</div>
+<div id="health">CAN: <span id="hp">100</span>
+<div id="healthbar"><div id="healthfill"></div></div></div>
+<div id="ammo">∞ <span id="shots">00</span></div>
+<div id="hint">WASD: HAREKET | MOUSE: BAKIŞ | SOL TIK: ATEŞ | ESC: DURAKLAT</div>
+<div id="message"></div>
 </div>
-<script>
-function show(id){
- ['main','online','team'].forEach(x=>document.getElementById(x).style.display='none');
- document.getElementById(id).style.display='block';
-}
-function findServer(){
- document.getElementById('serverMessage').textContent=
- 'Çok oyunculu sunucu henüz kurulmadı. Yakında!';
-}
-function joinTeam(){
- document.getElementById('teamMessage').textContent=
- document.getElementById('teamCode').value.trim()
- ? 'Takım sunucusu henüz etkin değil.'
- : 'Önce takım kodu gir!';
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x101d2b);
+scene.fog = new THREE.FogExp2(0x101d2b,0.009);
+
+const camera = new THREE.PerspectiveCamera(
+75,window.innerWidth/window.innerHeight,0.1,500
+);
+camera.position.set(0,2,16);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.7));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+document.body.appendChild(renderer.domElement);
+
+const hemi=new THREE.HemisphereLight(0x9acfff,0x19202b,2);
+scene.add(hemi);
+
+const sun=new THREE.DirectionalLight(0xffffff,3);
+sun.position.set(-30,50,20);
+sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+scene.add(sun);
+
+const blueLight=new THREE.PointLight(0x00cfff,100,90);
+blueLight.position.set(0,12,0);
+scene.add(blueLight);
+
+const pinkLight=new THREE.PointLight(0xff287f,75,70);
+pinkLight.position.set(25,9,-15);
+scene.add(pinkLight);
+
+const mats={
+floor:new THREE.MeshStandardMaterial({color:0x283543,roughness:0.82}),
+wall:new THREE.MeshStandardMaterial({color:0x596779,roughness:0.72}),
+dark:new THREE.MeshStandardMaterial({color:0x111e2b,metalness:0.65,roughness:0.4}),
+blue:new THREE.MeshStandardMaterial({color:0x00bde8,emissive:0x006080,emissiveIntensity:2}),
+pink:new THREE.MeshStandardMaterial({color:0xff327e,emissive:0x8a1244,emissiveIntensity:1.5}),
+white:new THREE.MeshStandardMaterial({color:0xdce8f0,roughness:0.4}),
+glass:new THREE.MeshStandardMaterial({color:0x187f9d,metalness:0.7,roughness:0.15,transparent:true,opacity:0.75})
+};
+
+const obstacles=[];
+function box(x,y,z,w,h,d,mat,collide=true){
+const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+mesh.position.set(x,y,z);
+mesh.castShadow=true;
+mesh.receiveShadow=true;
+scene.add(mesh);
+if(collide) obstacles.push({x,z,w,d});
+return mesh;
 }
 
-let scene,camera,renderer,player,targets=[],running=false,score=0;
-let yaw=0,pitch=0,keys={},weapon=0,ammo=[30,12,5],reloading=false,lastShot=0;
-const weaponNames=['NEON CARBINE','PULSE PISTOL','VOLT SNIPER'];
-const ray=new THREE.Raycaster();
-const clock=new THREE.Clock();
+function floor(x,z,w,d){
+const m=box(x,-0.25,z,w,0.5,d,mats.floor,false);
+return m;
+}
 
-function material(c,e=0){return new THREE.MeshStandardMaterial({color:c,emissive:e});}
-function block(x,y,z,w,h,d,c,e=0){
- let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(c,e));
- m.position.set(x,y,z);scene.add(m);return m;
+floor(0,0,110,100);
+
+// Zemin çizgileri
+for(let x=-50;x<=50;x+=10){
+box(x,0.015,0,0.06,0.02,95,mats.dark,false);
 }
-function buildArena(){
- scene.background=new THREE.Color(0x091321);
- scene.fog=new THREE.Fog(0x091321,25,75);
- scene.add(new THREE.HemisphereLight(0x9adfff,0x172033,2));
- let light=new THREE.DirectionalLight(0xffffff,2);
- light.position.set(-8,15,8);scene.add(light);
- let floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),material(0x172536));
- floor.rotation.x=-Math.PI/2;scene.add(floor);
- let grid=new THREE.GridHelper(100,50,0x1d9eae,0x254052);
- grid.position.y=.01;scene.add(grid);
- // Arena boundaries
- block(0,4,-25,52,8,1,0x15283a);
- block(-26,4,0,1,8,52,0x15283a);
- block(26,4,0,1,8,52,0x15283a);
- block(0,4,26,52,8,1,0x15283a);
- // Cover and narrow routes
- for(let i=-2;i<=2;i++){
-  block(i*9,1.3,-7,3,2.6,2,0x28465a);
-  block(i*9,1.3,-17,3,2.6,2,0x28465a);
- }
- // Neon buildings
- for(let i=0;i<12;i++){
-  let x=(Math.random()-.5)*42;
-  let z=-22-Math.random()*9;
-  block(x,3,z,3,6+Math.random()*7,3,0x203449);
- }
- for(let z=-20;z<=20;z+=10){
-  block(-25,4,z,.12,7,.12,0x00bcd4,0x00bcd4);
-  block(25,4,z,.12,7,.12,0xff267f,0xff267f);
- }
+for(let z=-45;z<=45;z+=10){
+box(0,0.016,z,105,0.02,0.06,mats.dark,false);
 }
-function spawnTarget(){
- let g=new THREE.Group();
- let body=new THREE.Mesh(new THREE.CylinderGeometry(.48,.58,1.25,12),material(0xff526d,0x4b0718));
- body.position.y=.75;g.add(body);
- let head=new THREE.Mesh(new THREE.SphereGeometry(.38,16,12),material(0xffc5d0));
- head.position.y=1.65;g.add(head);
- let ring=new THREE.Mesh(new THREE.TorusGeometry(.68,.045,8,24),material(0x36eaff,0x0aaacb));
- ring.position.y=.78;g.add(ring);
- g.position.set((Math.random()-.5)*38,0,-5-Math.random()*18);
- g.userData.health=100;
- g.userData.parts=[body,head,ring];
- scene.add(g);targets.push(g);
+
+// Dış sınırlar
+box(0,4,-50,110,8,2,mats.wall);
+box(0,4,50,110,8,2,mats.wall);
+box(-55,4,0,2,8,100,mats.wall);
+box(55,4,0,2,8,100,mats.wall);
+
+// Şehir binaları
+function building(x,z,w,d,h,accent){
+box(x,h/2,z,w,h,d,mats.wall);
+box(x,h+0.15,z,w+0.5,0.3,d+0.5,mats.dark,false);
+box(x,h*0.65,z-d/2-0.08,w*0.7,0.6,0.12,accent,false);
+for(let y=2;y<h-1;y+=3){
+box(x,y,z-d/2-0.09,w*0.65,0.08,0.1,mats.glass,false);
 }
-function startGame(){
- document.getElementById('menu').style.display='none';
- document.getElementById('game').style.display='block';
- document.getElementById('hud').style.display='block';
- if(!renderer){
-  const canvas=document.getElementById('game');
-  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-  scene=new THREE.Scene();
-  camera=new THREE.PerspectiveCamera(76,innerWidth/innerHeight,.1,120);
-  player=new THREE.Group();scene.add(player);player.add(camera);
-  camera.position.set(0,1.7,0);
-  buildArena();
-  for(let i=0;i<10;i++)spawnTarget();
-  window.addEventListener('resize',resize);
- }
- running=true;
- renderer.setSize(innerWidth,innerHeight);
- clock.getDelta();
- canvasLock();
- animate();
 }
-function canvasLock(){
- document.getElementById('game').requestPointerLock?.();
+building(-39,-28,15,14,17,mats.blue);
+building(38,-31,16,14,20,mats.pink);
+building(-40,30,17,14,16,mats.pink);
+building(40,29,17,15,19,mats.blue);
+building(0,-43,18,9,13,mats.blue);
+
+// Orta alan mimarisi
+building(0,0,12,10,8,mats.blue);
+box(0,8.2,0,13,0.4,11,mats.dark,false);
+box(0,8.5,-5.2,8,0.12,0.15,mats.blue,false);
+
+// Siperler
+box(-20,1.5,0,8,3,3,mats.dark);
+box(20,1.5,0,8,3,3,mats.dark);
+box(0,1.5,22,8,3,3,mats.dark);
+box(-23,1.5,-20,5,3,5,mats.wall);
+box(23,1.5,-20,5,3,5,mats.wall);
+box(-20,1.5,24,5,3,5,mats.wall);
+box(20,1.5,25,5,3,5,mats.wall);
+
+// A B C alan işaretleri
+function sign(text,x,z,color){
+const canvas=document.createElement('canvas');
+canvas.width=512;canvas.height=180;
+const ctx=canvas.getContext('2d');
+ctx.fillStyle='#071522';
+ctx.fillRect(0,0,512,180);
+ctx.strokeStyle=color;ctx.lineWidth=8;
+ctx.strokeRect(5,5,502,170);
+ctx.font='bold 100px Arial';
+ctx.textAlign='center';
+ctx.fillStyle=color;
+ctx.fillText(text,256,125);
+const texture=new THREE.CanvasTexture(canvas);
+const material=new THREE.MeshBasicMaterial({map:texture});
+const mesh=new THREE.Mesh(new THREE.PlaneGeometry(7,2.5),material);
+mesh.position.set(x,6,z);
+scene.add(mesh);
 }
-document.addEventListener('pointerlockchange',()=>{
- if(document.pointerLockElement!==document.getElementById('game')&&running){
-  document.getElementById('menu').style.display='flex';
-  show('main');
-  running=false;
- }
+sign('SITE A',-38,-19,'#00dfff');
+sign('SITE B',38,-19,'#ff327e');
+sign('SITE C',0,34,'#00dfff');
+sign('MID',0,-12,'#ffffff');
+
+// Dekoratif ışık direkleri
+for(const x of [-32,32]){
+for(const z of [-35,0,35]){
+box(x,4,z,0.35,8,0.35,mats.dark,false);
+const lamp=new THREE.PointLight(x<0?0x00cfff:0xff287f,25,17);
+lamp.position.set(x,7,z);
+scene.add(lamp);
+}
+}
+
+// Oyuncu kamerası
+const player={
+pos:new THREE.Vector3(0,2,16),
+health:100,
+speed:11,
+yaw:0,
+pitch:0
+};
+camera.position.copy(player.pos);
+
+// Silah modeli - bilim kurgu enerji aracı
+const gun=new THREE.Group();
+const gunMat=new THREE.MeshStandardMaterial({color:0x182b3c,metalness:0.85,roughness:0.25});
+const barrelMat=new THREE.MeshStandardMaterial({color:0x00d9ff,emissive:0x007aab,emissiveIntensity:2});
+function gunBox(w,h,d,x,y,z,mat){
+const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+m.position.set(x,y,z);
+gun.add(m);
+}
+gunBox(0.24,0.25,0.8,0,0,0,gunMat);
+gunBox(0.1,0.12,0.45,0,0.1,-0.55,barrelMat);
+gunBox(0.16,0.4,0.2,0,-0.27,0.12,gunMat);
+gunBox(0.35,0.08,0.3,0,-0.12,0.12,barrelMat);
+gun.position.set(0.38,-0.34,-0.65);
+camera.add(gun);
+scene.add(camera);
+
+// Botlar
+const bots=[];
+function makeBot(x,z,index){
+const group=new THREE.Group();
+const red=new THREE.MeshStandardMaterial({
+color:index%2?0xff467f:0x25b9d8,
+metalness:0.5,roughness:0.4
 });
-function exitGame(){
- document.exitPointerLock?.();
- running=false;
- document.getElementById('menu').style.display='flex';
- show('main');
- document.getElementById('hud').style.display='none';
- document.getElementById('game').style.display='none';
+const dark=new THREE.MeshStandardMaterial({color:0x101925,metalness:0.7});
+function part(w,h,d,px,py,pz,mat){
+const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+m.position.set(px,py,pz);
+m.castShadow=true;
+group.add(m);
+return m;
 }
-document.addEventListener('keydown',e=>{
- keys[e.code]=true;
- if(e.code==='Digit1')switchWeapon(0);
- if(e.code==='Digit2')switchWeapon(1);
- if(e.code==='Digit3')switchWeapon(2);
- if(e.code==='KeyR')reload();
-});
+part(0.8,1.1,0.45,0,1.35,0,red);
+part(0.55,0.55,0.5,0,2.2,0,dark);
+part(0.2,0.14,0.1,0,2.25,-0.27,mats.blue);
+part(0.25,0.8,0.28,-0.22,0.4,0,dark);
+part(0.25,0.8,0.28,0.22,0.4,0,dark);
+part(0.25,0.85,0.25,-0.55,1.45,0,dark);
+part(0.25,0.85,0.25,0.55,1.45,0,dark);
+part(0.2,0.18,0.75,0.52,1.5,-0.4,red);
+group.position.set(x,0,z);
+scene.add(group);
+bots.push({group,hp:100,alive:true,speed:1.1+(index%3)*0.2,phase:index});
+}
+[
+[-15,-13],[15,-14],[-32,12],[32,12],
+[-12,35],[12,35],[0,-32]
+].forEach((p,i)=>makeBot(p[0],p[1],i));
+
+// Mermiler
+const projectiles=[];
+function projectile(start,end,mat){
+const direction=end.clone().sub(start);
+const mesh=new THREE.Mesh(
+new THREE.SphereGeometry(0.11,8,8),
+mat
+);
+mesh.position.copy(start);
+scene.add(mesh);
+projectiles.push({mesh,dir:direction.normalize(),life:0});
+}
+
+// Kontroller
+const keys={};
+let locked=false;
+let shots=0;
+let lastShot=0;
+let running=true;
+
+document.addEventListener('keydown',e=>keys[e.code]=true);
 document.addEventListener('keyup',e=>keys[e.code]=false);
+
 document.addEventListener('mousemove',e=>{
- if(!running||document.pointerLockElement!==document.getElementById('game'))return;
- yaw-=e.movementX*.0022;
- pitch-=e.movementY*.0022;
- pitch=Math.max(-1.4,Math.min(1.4,pitch));
- player.rotation.y=yaw;
- camera.rotation.x=pitch;
+if(!locked)return;
+player.yaw-=e.movementX*0.002;
+player.pitch-=e.movementY*0.002;
+player.pitch=Math.max(-1.35,Math.min(1.35,player.pitch));
+camera.rotation.order='YXZ';
+camera.rotation.y=player.yaw;
+camera.rotation.x=player.pitch;
 });
-function switchWeapon(i){
- weapon=i;
- document.getElementById('weapon').textContent=weaponNames[i];
- updateAmmo();
+
+const menu=document.getElementById('menu');
+const hud=document.getElementById('hud');
+
+document.getElementById('start').onclick=()=>{
+menu.style.display='none';
+hud.style.display='block';
+renderer.domElement.requestPointerLock();
+};
+
+document.addEventListener('pointerlockchange',()=>{
+locked=document.pointerLockElement===renderer.domElement;
+if(!locked && running){
+menu.style.display='flex';
+document.querySelector('#menu h1').textContent='ORVEX';
+document.querySelector('#menu p').textContent='OYUN DURAKLATILDI';
+document.getElementById('start').textContent='DEVAM ET';
+hud.style.display='none';
 }
-function updateAmmo(){
- document.getElementById('ammo').textContent=ammo[weapon];
-}
-function reload(){
- if(reloading||ammo[weapon]===[30,12,5][weapon])return;
- reloading=true;
- setTimeout(()=>{
-  ammo[weapon]=[30,12,5][weapon];
-  reloading=false;updateAmmo();
- },1200);
-}
-document.addEventListener('mousedown',e=>{
- if(e.button!==0||!running||reloading)return;
- if(document.pointerLockElement!==document.getElementById('game'))return;
- let now=performance.now();
- if(now-lastShot<([115,260,750][weapon]))return;
- lastShot=now;
- if(ammo[weapon]<=0){reload();return;}
- ammo[weapon]--;updateAmmo();
- ray.setFromCamera(new THREE.Vector2(0,0),camera);
- let parts=targets.flatMap(t=>t.userData.parts);
- let hit=ray.intersectObjects(parts,false);
- if(hit.length){
-  let t=targets.find(x=>x.userData.parts.includes(hit[0].object));
-  if(t){
-   t.userData.health-=[34,50,100][weapon];
-   if(t.userData.health<=0){
-    scene.remove(t);targets.splice(targets.indexOf(t),1);
-    score++;
-    document.getElementById('score').textContent=score;
-    spawnTarget();
-   }
-  }
- }
 });
-function resize(){
- if(!renderer)return;
- camera.aspect=innerWidth/innerHeight;
- camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
+
+const raycaster=new THREE.Raycaster();
+
+document.addEventListener('mousedown',()=>{
+if(!locked || !running)return;
+const now=performance.now();
+if(now-lastShot<180)return;
+lastShot=now;
+shots++;
+document.getElementById('shots').textContent=String(shots).padStart(2,'0');
+
+gun.position.z=-0.8;
+setTimeout(()=>gun.position.z=-0.65,65);
+
+raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
+const targets=[];
+bots.forEach(b=>{if(b.alive)b.group.traverse(o=>{if(o.isMesh)targets.push(o)})});
+const hits=raycaster.intersectObjects(targets);
+if(hits.length){
+const bot=bots.find(b=>b.alive && b.group.getObjectById(hits[0].object.id));
+if(bot){
+bot.hp-=35;
+if(bot.hp<=0){
+bot.alive=false;
+scene.remove(bot.group);
+document.getElementById('message').textContent='HEDEF ETKİSİZ HALE GETİRİLDİ';
+setTimeout(()=>document.getElementById('message').textContent='',900);
 }
+}
+}
+});
+
+// Çarpışma
+function blocked(x,z){
+if(Math.abs(x)>51 || Math.abs(z)>46)return true;
+for(const o of obstacles){
+if(Math.abs(x-o.x)<o.w/2+0.6 &&
+Math.abs(z-o.z)<o.d/2+0.6)return true;
+}
+return false;
+}
+
+// Oyun döngüsü
+const clock=new THREE.Clock();
 function animate(){
- if(!running)return;
- requestAnimationFrame(animate);
- let dt=Math.min(clock.getDelta(),.04);
- if(document.pointerLockElement===document.getElementById('game')){
-  let speed=8*dt;
-  if(keys.KeyW)player.translateZ(-speed);
-  if(keys.KeyS)player.translateZ(speed);
-  if(keys.KeyA)player.translateX(-speed);
-  if(keys.KeyD)player.translateX(speed);
-  player.position.x=Math.max(-23,Math.min(23,player.position.x));
-  player.position.z=Math.max(-23,Math.min(23,player.position.z));
-  targets.forEach((t,i)=>{
-   t.position.y=.04*Math.sin(performance.now()*.0015+i);
-  });
- }
- renderer.render(scene,camera);
+requestAnimationFrame(animate);
+const dt=Math.min(clock.getDelta(),0.04);
+
+if(locked && running){
+const forward=new THREE.Vector3(-Math.sin(player.yaw),0,-Math.cos(player.yaw));
+const right=new THREE.Vector3(Math.cos(player.yaw),0,-Math.sin(player.yaw));
+const move=new THREE.Vector3();
+
+if(keys.KeyW)move.add(forward);
+if(keys.KeyS)move.sub(forward);
+if(keys.KeyD)move.add(right);
+if(keys.KeyA)move.sub(right);
+
+if(move.length()>0){
+move.normalize().multiplyScalar(player.speed*dt);
+const nx=player.pos.x+move.x;
+const nz=player.pos.z+move.z;
+if(!blocked(nx,player.pos.z))player.pos.x=nx;
+if(!blocked(player.pos.x,nz))player.pos.z=nz;
 }
+
+camera.position.copy(player.pos);
+
+// Bot hareketleri
+bots.forEach(bot=>{
+if(!bot.alive)return;
+const target=new THREE.Vector3(player.pos.x,0,player.pos.z);
+const delta=target.sub(bot.group.position);
+const distance=delta.length();
+if(distance>3){
+delta.normalize();
+const nx=bot.group.position.x+delta.x*bot.speed*dt;
+const nz=bot.group.position.z+delta.z*bot.speed*dt;
+if(!blocked(nx,bot.group.position.z))bot.group.position.x=nx;
+if(!blocked(bot.group.position.x,nz))bot.group.position.z=nz;
+}
+bot.group.rotation.y=Math.atan2(
+player.pos.x-bot.group.position.x,
+player.pos.z-bot.group.position.z
+);
+});
+
+// Botlar yaklaştığında oyuncunun canını azalt
+bots.forEach(bot=>{
+if(!bot.alive)return;
+const d=bot.group.position.distanceTo(player.pos);
+if(d<2.5){
+player.health=Math.max(0,player.health-5*dt);
+}
+});
+
+document.getElementById('hp').textContent=Math.ceil(player.health);
+document.getElementById('healthfill').style.width=player.health+'%';
+
+if(player.health<=0){
+running=false;
+document.getElementById('message').textContent='OYUN BİTTİ';
+document.exitPointerLock();
+menu.style.display='flex';
+document.querySelector('#menu h1').textContent='ORVEX';
+document.querySelector('#menu p').textContent='TEKRAR DENE';
+document.getElementById('start').textContent='YENİDEN BAŞLA';
+}
+}
+
+renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+camera.aspect=window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+});
 </script>
 </body>
-</html>
-let isCrouching = false;
-
-document.addEventListener("keydown", (e) => {
-    if (e.code === "KeyC") isCrouching = true;
-});
-
-document.addEventListener("keyup", (e) => {
-    if (e.code === "KeyC") isCrouching = false;
-});
-
-function updateCrouch() {
-    const targetY = isCrouching ? 1.1 : 1.7;
-    camera.position.y += (targetY - camera.position.y) * 0.2;
-}
-</script>
-
-
-
-</body>
-</html>
-
-document.addEventListener("DOMContentLoaded", () => {
-    const buttons = document.querySelectorAll("button");
-
-    buttons.forEach(button => {
-        button.addEventListener("click", () => {
-            const name = button.textContent.trim().toLowerCase();
-
-            if (name.includes("çevrim içi") || name.includes("online")) {
-                alert("ÇEVRİM İÇİ MENÜSÜ AÇILIYOR!");
-            }
-
-            if (name.includes("çevrim dışı") || name.includes("offline")) {
-                alert("BOTLARLA OYUN AÇILIYOR!");
-            }
-        });
-    });
-});
-<button id="onlineBtn">ONLINE</button>
-
-<div id="mainMenu" class="neon-menu">
-  <h1>NEON STRIKE</h1>
-  <h2>ARENA</h2>
-
-  <button onclick="openOnline()">ÇEVRİM İÇİ</button>
-  <button onclick="openOffline()">ÇEVRİM DIŞI</button>
-
-  <p>FUTURE COMBAT • ENTER THE ARENA</p>
-</div>
-
-<div id="gameOptions" class="neon-menu" style="display:none">
-  <h2 id="menuTitle">OYUN MODU</h2>
-  <button onclick="backToMenu()">GERİ</button>
-</div>
-
-<style>
-.neon-menu {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: radial-gradient(circle, #172b48, #050812 75%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 22px;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-}
-
-.neon-menu h1 {
-  color: #35eaff;
-  font-size: 48px;
-  text-shadow: 0 0 20px #00cfff;
-  margin: 0;
-}
-
-.neon-menu h2 {
-  font-size: 28px;
-  letter-spacing: 8px;
-}
-
-.neon-menu button {
-  width: 260px;
-  padding: 18px;
-  background: #102b43;
-  color: #48edff;
-  border: 2px solid #35eaff;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: .2s;
-}
-
-.neon-menu button:hover {
-  background: #087c9b;
-  box-shadow: 0 0 25px #00dfff;
-  transform: scale(1.05);
-}
-</style>
-
-<script>
-function openOnline() {
-  document.getElementById("mainMenu").style.display = "none";
-  document.getElementById("gameOptions").style.display = "flex";
-  document.getElementById("menuTitle").textContent =
-    "ÇEVRİM İÇİ - YAKINDA";
-}
-
-function openOffline() {
-  document.getElementById("mainMenu").style.display = "none";
-  document.getElementById("gameOptions").style.display = "flex";
-  document.getElementById("menuTitle").textContent =
-    "BOT MODU - OYUN BAĞLANTISI GEREKLİ";
-}
-
-function backToMenu() {
-  document.getElementById("gameOptions").style.display = "none";
-  document.getElementById("mainMenu").style.display = "flex";
-}
-</script>
 </html>
